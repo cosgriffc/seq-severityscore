@@ -120,7 +120,7 @@ def nri(model1, model2, X, y):
     z_neg = (pred_model2[y == 0] < pred_model1[y == 0]).sum() - (pred_model2[y == 0] > pred_model1[y == 0]).sum()
 
     additive_nri = (z_pos/n_event)*100 + (z_neg/n_no_event)*100
-    absolute_nri = (z_pos + z_neg)/n * 100
+    absolute_nri = (z_pos + z_neg)/n
     return (additive_nri, absolute_nri)
 
 def nri_grid(models, names, X, y, round=True):
@@ -138,7 +138,7 @@ def nri_grid(models, names, X, y, round=True):
 	additive_grid = pd.DataFrame(data=additive_grid, index=names, columns=names)
 	absolute_grid = pd.DataFrame(data=absolute_grid, index=names, columns=names)
 	if round:
-		return (additive_grid.round(0), absolute_grid.round(0))
+		return (additive_grid.round(0), absolute_grid.round(2))
 	else:
 		return (additive_grid, absolute_grid)
 
@@ -172,6 +172,25 @@ def opr_table(models, names, X, y):
 	opr = [op_ratio(model, X, y) for model in models]
 	opr_table = pd.DataFrame(data=opr, index=names, columns=['OPR', '2.5%', '97.5%'])
 	return opr_table
+
+# Feature analysis function for normalized regression model
+def gen_logodds_plot(model, features, n_features=10, title='Log Odds Plot', save_name=None):
+    plt.figure(figsize=(10, 10))
+    coef = {k:v for k, v in zip(features, model.named_steps['ridge'].coef_.ravel())}
+    coef = pd.DataFrame.from_dict(coef, orient='index', columns=['log_odds'])
+    coef = coef.reindex(coef.log_odds.abs().sort_values(ascending=False).index).iloc[0:n_features, :]
+    coef = coef.reindex(index=coef.index[::-1])
+    pos_neg = coef.log_odds > 0
+    color_map = pos_neg.map({True: tableau20[8], False: tableau20[10]})
+    coef.plot(kind='barh', grid=True, sort_columns=False,
+                   title=title,
+                   color=[color_map.values], ax=plt.axes(), width=0.20,
+                   legend=False)
+    plt.xlabel('log(OR)')
+    plt.ylabel('Features')
+    if save_name != None:
+        plt.savefig('./figures/' + save_name + '.svg', bbox_inches='tight')
+    plt.show()
 
 # Wrapper for working with APACHE model from eICU which just provides 
 # the probabilities from the model.
