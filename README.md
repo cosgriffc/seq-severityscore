@@ -1,6 +1,6 @@
 # Developing Well Calibrated Illness Severity Scores for the Most Critically Ill
 ## Christopher V. Cosgriff, MD, MPH
-### Hospital of the University of Pennsylvania
+### MIT Critical Data and the Hospital of the University of Pennsylvania
 
 ## Background
 Illness severity scores have demonstrated poor generalization performance in forecasting
